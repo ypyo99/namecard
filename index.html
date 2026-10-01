@@ -427,6 +427,22 @@ async function render(){
 }
 render();
 
+// Load default sample photo
+const defaultImg = new Image();
+defaultImg.onload = () => {
+  if (photo) return; // 이미 사용자가 사진을 선택한 경우 무시
+  photo = defaultImg;
+  photoBg = edgeColor(defaultImg);
+  if(IS_MOBILE) {
+    $('fileLabel').firstChild.textContent='🖼️ 다른 사진 선택 ';
+    $('cameraLabel').firstChild.textContent='📸 다시 찍기 ';
+  } else {
+    $('fileLabel').firstChild.textContent='📷 다른 사진으로 바꾸기 ';
+  }
+  schedule();
+};
+defaultImg.src = 'sample.png';
+
 /* ---------- save ---------- */
 let downloads=null;
 const fileName=()=>`명함_${(val('name')||'나의명함').replace(/[\\/:*?"<>|○]/g,'')||'나의명함'}.jpg`;
