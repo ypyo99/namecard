@@ -8,21 +8,22 @@
 :root{
   --bg:#f3f6fb; --panel:#ffffff; --fg:#17233a; --muted:#5a6780; --line:#d8e0ec;
   --accent:#1f5fc4; --accent-ink:#ffffff; --soft:#e6eefb; --ok:#1d8a52; --warn:#b4570d;
+  --title-color:#3b82f6;
   --ui:"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --brush:"Nanum Brush Script","Noto Sans KR",cursive;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0f1522; --panel:#172033; --fg:#e7ecf5; --muted:#9aa7bf; --line:#2a364d;
-  --accent:#6aa3ff; --accent-ink:#0b1426; --soft:#1d2a44; --ok:#5fd394; --warn:#f0a35b; color-scheme:dark}}
+  --accent:#6aa3ff; --accent-ink:#0b1426; --soft:#1d2a44; --ok:#5fd394; --warn:#f0a35b; --title-color:var(--accent); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1522; --panel:#172033; --fg:#e7ecf5; --muted:#9aa7bf; --line:#2a364d;
-  --accent:#6aa3ff; --accent-ink:#0b1426; --soft:#1d2a44; --ok:#5fd394; --warn:#f0a35b; color-scheme:dark}
+  --accent:#6aa3ff; --accent-ink:#0b1426; --soft:#1d2a44; --ok:#5fd394; --warn:#f0a35b; --title-color:var(--accent); color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:17px;line-height:1.55;padding-inline:16px;padding-block:24px 48px}
 .wrap{max-width:1240px;margin:0 auto;display:grid;gap:20px}
 header h1{font-size:28px;margin:0;letter-spacing:-.01em;text-wrap:balance}
-header h1 span{font-family:var(--brush);font-weight:400;font-size:40px;color:var(--accent);margin-right:6px}
+header h1 span{font-family:var(--brush);font-weight:400;font-size:40px;color:var(--title-color);margin-right:6px}
 header p{margin:4px 0 0;color:var(--muted)}
 .grid{display:grid;grid-template-columns:400px minmax(0,1fr);gap:20px;align-items:start}
 .form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:22px;min-width:0}
@@ -57,7 +58,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   .grid{grid-template-columns:minmax(0,1fr)}
   .preview{position:static;order:-1}
 }
-@media (max-width:420px){.row2{grid-template-columns:1fr}}
+@media (max-width:420px){
+  .row2{grid-template-columns:1fr}
+  #photoRow.row2{grid-template-columns:1fr 1fr; gap:8px}
+  #photoRow.row2 .file{font-size:14px !important; padding:12px 4px !important; letter-spacing:-0.3px}
+}
 .sheet[hidden]{display:none!important}
 .sheet{position:fixed;inset:0;z-index:50;background:rgba(8,14,28,.82);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 .sheet-in{background:var(--panel);color:var(--fg);border-radius:16px;padding:18px;width:min(560px,100%);max-height:100%;overflow:auto;display:grid;gap:14px}
@@ -70,7 +75,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <div class="wrap">
   <header>
     <h1><span>아직도 할 일이 많습니다!</span><br>명함 만들기</h1>
-    <p>사진을 올리고 내용을 고치면 오른쪽 명함이 바로 바뀝니다. 다 되면 <b>JPG로 저장하기</b>를 눌러 주세요.</p>
+    <p>사진을 올리고 내용을 고치면 명함이 바로 바뀝니다. <span id="saveText">다 되면 <b>JPG로 저장하기</b>를 눌러 주세요.</span></p>
   </header>
 
   <div class="grid">
@@ -485,7 +490,10 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sheet').hidden)
 $('sheetFile').onclick=()=>saveFile($('sheetStatus'));
 
 $('save').onclick=()=>{ if(IS_MOBILE) openSheet(); else saveFile($('saveStatus')); };
-if(IS_MOBILE)$('save').textContent='⬇ 갤러리에 저장하기';
+if(IS_MOBILE) {
+  $('save').textContent='⬇ 갤러리에 저장하기';
+  $('saveText').innerHTML='다 되면 <b>갤러리에 저장하기</b>를 눌러 주세요.';
+}
 
 /* ---------- AI recommend ---------- */
 let sample=null;
