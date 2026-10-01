@@ -1,0 +1,509 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>AI 일자리 명함 만들기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Nanum+Brush+Script&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: 입력 폼(왼쪽) + 큰 미리보기(오른쪽). 휴대폰에서는 미리보기가 위로 */
+:root{
+  --bg:#f3f6fb; --panel:#ffffff; --fg:#17233a; --muted:#5a6780; --line:#d8e0ec;
+  --accent:#1f5fc4; --accent-ink:#ffffff; --soft:#e6eefb; --ok:#1d8a52; --warn:#b4570d;
+  --ui:"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --brush:"Nanum Brush Script","Noto Sans KR",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1522; --panel:#172033; --fg:#e7ecf5; --muted:#9aa7bf; --line:#2a364d;
+  --accent:#6aa3ff; --accent-ink:#0b1426; --soft:#1d2a44; --ok:#5fd394; --warn:#f0a35b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1522; --panel:#172033; --fg:#e7ecf5; --muted:#9aa7bf; --line:#2a364d;
+  --accent:#6aa3ff; --accent-ink:#0b1426; --soft:#1d2a44; --ok:#5fd394; --warn:#f0a35b; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:17px;line-height:1.55;padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:20px}
+header h1{font-size:28px;margin:0;letter-spacing:-.01em;text-wrap:balance}
+header h1 span{font-family:var(--brush);font-weight:400;font-size:40px;color:var(--accent);margin-right:6px}
+header p{margin:4px 0 0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:400px minmax(0,1fr);gap:20px;align-items:start}
+.form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:22px;min-width:0}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:12px;min-width:0}
+legend{font-weight:700;font-size:15px;letter-spacing:.06em;color:var(--accent);margin-bottom:6px}
+label{display:grid;gap:4px;font-weight:500;font-size:16px}
+label small{font-weight:400;color:var(--muted);font-size:14px}
+input[type=text],textarea{font:inherit;font-size:18px;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+textarea{resize:vertical;min-height:84px;line-height:1.5}
+input:focus-visible,textarea:focus-visible,button:focus-visible,.file:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.file{display:flex;align-items:center;justify-content:center;gap:10px;border:2px dashed var(--line);border-radius:12px;padding:18px;cursor:pointer;font-weight:700;color:var(--accent);background:var(--soft);text-align:center}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.sliders{display:grid;gap:8px}
+.sliders label{grid-template-columns:64px 1fr;align-items:center;font-size:15px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.themes{display:flex;gap:10px;flex-wrap:wrap}
+.themes button{font:inherit;font-size:15px;border:2px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:8px 14px 8px 10px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.themes button[aria-pressed=true]{border-color:var(--accent);font-weight:700}
+.themes i{width:20px;height:20px;border-radius:50%;display:block}
+.btn{font:inherit;font-weight:700;font-size:18px;border:0;border-radius:12px;padding:14px 18px;cursor:pointer;background:var(--accent);color:var(--accent-ink);width:100%}
+.btn.ghost{background:var(--soft);color:var(--accent);font-size:16px;padding:10px 14px}
+.btn:disabled{opacity:.55;cursor:wait}
+.note{font-size:14px;color:var(--muted);margin:0}
+.status{font-size:15px;margin:0;min-height:1.4em}
+.status.ok{color:var(--ok)} .status.warn{color:var(--warn)}
+.preview{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:grid;gap:14px;min-width:0}
+.cardbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.cardbox img{display:block;width:100%;height:auto;border-radius:6px;box-shadow:0 6px 24px rgba(10,30,70,.18)}
+.actions{display:grid;grid-template-columns:1fr;gap:8px}
+@media (max-width:900px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .preview{position:static;order:-1}
+}
+@media (max-width:420px){.row2{grid-template-columns:1fr}}
+.sheet[hidden]{display:none!important}
+.sheet{position:fixed;inset:0;z-index:50;background:rgba(8,14,28,.82);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
+.sheet-in{background:var(--panel);color:var(--fg);border-radius:16px;padding:18px;width:min(560px,100%);max-height:100%;overflow:auto;display:grid;gap:14px}
+.sheet-in h2{margin:0;font-size:21px}
+.sheet-in img{width:100%;height:auto;border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.25);-webkit-touch-callout:default;user-select:auto}
+.steps{margin:0;padding-left:22px;display:grid;gap:6px;font-size:17px}
+.steps b{color:var(--accent)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><span>아직도 할 일이 많습니다!</span> 명함 만들기</h1>
+    <p>사진을 올리고 내용을 고치면 오른쪽 명함이 바로 바뀝니다. 다 되면 <b>JPG로 저장하기</b>를 눌러 주세요.</p>
+  </header>
+
+  <div class="grid">
+    <form class="form" id="f" autocomplete="off">
+      <fieldset>
+        <legend>1. 얼굴 사진</legend>
+        <div class="row2" id="photoRow">
+          <label class="file" id="fileLabel" style="font-size:15px;padding:12px">🖼️ 갤러리에서 선택
+            <input type="file" id="photo" accept="image/*">
+          </label>
+          <label class="file" id="cameraLabel" style="font-size:15px;padding:12px">📸 카메라로 찍기
+            <input type="file" id="photoCam" accept="image/*" capture="user">
+          </label>
+        </div>
+        <div class="sliders">
+          <label>크기 <input type="range" id="zoom" min="40" max="250" value="100"></label>
+          <label>좌우 <input type="range" id="ox" min="-100" max="100" value="0"></label>
+          <label>위아래 <input type="range" id="oy" min="-100" max="100" value="0"></label>
+        </div>
+        <p class="note">크기를 줄이면 사진 전체가 작아지고, 남는 곳은 사진 배경색으로 채워져요. 밝은 단색 배경에서 찍은 상반신 사진이 가장 잘 어울려요. 사진은 이 기기 안에서만 처리되고 어디에도 올라가지 않습니다.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>2. 기본 정보</legend>
+        <div class="row2">
+          <label>이름 <input type="text" id="name" value="이○○"></label>
+          <label>호·별칭 <small>괄호 안에 표시</small><input type="text" id="alias" value="표영"></label>
+        </div>
+        <label>전화번호 <input type="text" id="phone" value="010-1234-5678"></label>
+        <label>이메일 <input type="text" id="email" value="youngpyo@naver.com"></label>
+        <label>사는 곳 <input type="text" id="addr" value="서울시 성동구"></label>
+        <label>나의 한마디 <input type="text" id="slogan" value="늘 배우고, 늘 나누겠습니다."></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>3. 명함 내용</legend>
+        <label>큰 제목 <input type="text" id="headline" value="아직도 할 일이 많습니다!"></label>
+        <label>경력 <small>한 줄에 하나씩</small><textarea id="career" rows="2">은행 근무 25년</textarea></label>
+        <label>잘하는 일 <small>한 줄에 하나씩 (3개 정도)</small><textarea id="skills" rows="3">사람들과 소통하기
+문서 작성하기
+고객 응대하기</textarea></label>
+        <label>희망하는 업무 <small>한 줄에 하나씩 적으면 내용에 맞는 아이콘이 자동으로 들어가요. 원하는 그림문자를 맨 앞에 직접 넣어도 됩니다.</small><textarea id="ai" rows="3">금융·행정 업무 지원
+고객 안내·상담
+디지털 교육 보조</textarea></label>
+        <button type="button" class="btn ghost" id="aiBtn" hidden>✨ 경력과 잘하는 일로 AI에게 희망 업무 추천받기</button>
+        <p class="status" id="aiStatus" aria-live="polite"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>4. 색상</legend>
+        <div class="themes" id="themes"></div>
+      </fieldset>
+    </form>
+
+    <section class="preview" aria-label="명함 미리보기">
+      <div class="cardbox"><img id="out" alt="명함 미리보기"></div>
+      <div class="actions">
+        <button type="button" class="btn" id="save">⬇ JPG로 저장하기</button>
+        <p class="status" id="saveStatus" aria-live="polite"></p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-in">
+    <h2 id="sheetTitle">갤러리에 저장하기</h2>
+    <img id="sheetImg" alt="저장할 명함 이미지">
+    <ol class="steps" id="sheetSteps"></ol>
+    <button type="button" class="btn ghost" id="sheetFile" hidden>파일로 저장하기</button>
+    <p class="status" id="sheetStatus" aria-live="polite"></p>
+    <button type="button" class="btn" id="sheetClose">닫기</button>
+  </div>
+</div>
+<canvas id="cv" width="2340" height="1376" hidden></canvas>
+
+<script>
+const $=id=>document.getElementById(id);
+const W=1170,H=688,S=2;
+const cv=$('cv'),ctx=cv.getContext('2d');
+const SANS='"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+const BRUSH='"Nanum Brush Script","Noto Sans KR",cursive';
+
+const UA=navigator.userAgent||'';
+const IS_IOS=/iPhone|iPad|iPod/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const IS_ANDROID=/Android/.test(UA);
+const IS_MOBILE=IS_IOS||IS_ANDROID||(matchMedia('(pointer:coarse)').matches&&innerWidth<900);
+
+if(!IS_MOBILE) {
+  $('cameraLabel').hidden = true;
+  $('photoRow').classList.remove('row2');
+  $('fileLabel').firstChild.textContent = '📷 사진 선택하기 ';
+}
+
+const THEMES={
+  blue:{label:'파랑',dark:'#0a3a8c',main:'#2167cf',hi:'#5f9ff0',ink:'#0c2c66',p2:'#1f9a5c',p2d:'#147445',pill3:'#d9e7fb',chip:'#1f5fc4',bg1:'#e9f1fb',wave:'#c7dcf5',wave2:'#d5ecdf'},
+  green:{label:'초록',dark:'#0d5a42',main:'#1d9670',hi:'#5fcca6',ink:'#0c3f30',p2:'#2a6fd0',p2d:'#1c55a8',pill3:'#d6f0e5',chip:'#16805f',bg1:'#e8f6f0',wave:'#c3e8d9',wave2:'#d9e6f8'},
+  plum:{label:'자주',dark:'#5a1d4e',main:'#94387f',hi:'#d47ec0',ink:'#43153a',p2:'#c26a16',p2d:'#9a520e',pill3:'#f4e0ef',chip:'#86306f',bg1:'#f7edf4',wave:'#ebcfe3',wave2:'#f6e4cf'},
+};
+const DOTS=['#f08a24','#8a6cf0','#14a0a0','#e2557a','#3f86e8'];
+let theme='blue', photo=null, photoBg='#eef2f7';
+function edgeColor(im){try{const c=document.createElement('canvas');c.width=c.height=40;const g=c.getContext('2d');g.drawImage(im,0,0,40,40);const d=g.getImageData(0,0,40,40).data;let r=0,gg=0,b=0,n=0;for(let y=0;y<40;y++)for(let x=0;x<40;x++){if(y>4&&(y>22||(x>2&&x<37)))continue;const i=(y*40+x)*4;r+=d[i];gg+=d[i+1];b+=d[i+2];n++;}return `rgb(${r/n|0},${gg/n|0},${b/n|0})`;}catch(e){return '#eef2f7';}}
+
+// theme buttons
+const tbox=$('themes');
+for(const [k,t] of Object.entries(THEMES)){
+  const b=document.createElement('button');b.type='button';b.id='theme-'+k;
+  b.innerHTML=`<i style="background:linear-gradient(135deg,${t.dark},${t.main})"></i>${t.label}`;
+  b.setAttribute('aria-pressed',k===theme);
+  b.onclick=()=>{theme=k;tbox.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));schedule();};
+  tbox.appendChild(b);
+}
+
+const handlePhoto = e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const url=URL.createObjectURL(f); const im=new Image();
+  im.onload=()=>{
+    photo=im;$('zoom').value=100;$('ox').value=0;$('oy').value=0;photoBg=edgeColor(im);
+    if(IS_MOBILE) {
+      $('fileLabel').firstChild.textContent='🖼️ 다른 사진 선택 ';
+      $('cameraLabel').firstChild.textContent='📸 다시 찍기 ';
+    } else {
+      $('fileLabel').firstChild.textContent='📷 다른 사진으로 바꾸기 ';
+    }
+    schedule();
+  };
+  im.src=url;
+};
+$('photo').addEventListener('change',handlePhoto);
+$('photoCam').addEventListener('change',handlePhoto);
+$('f').addEventListener('input',schedule);
+
+const lines=id=>$(id).value.split('\n').map(s=>s.trim()).filter(Boolean);
+const val=id=>$(id).value.trim();
+
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function fitFont(text,weight,size,family,maxW,min=12){
+  let s=size; ctx.font=`${weight} ${s}px ${family}`;
+  while(s>min && ctx.measureText(text).width>maxW){s-=1;ctx.font=`${weight} ${s}px ${family}`;}
+  return s;
+}
+
+/* ---------- small vector icons ---------- */
+function iconBank(cx,cy,c){ctx.save();ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(cx-13,cy-5);ctx.lineTo(cx,cy-13);ctx.lineTo(cx+13,cy-5);ctx.closePath();ctx.fill();
+  for(let i=-1;i<=1;i++)ctx.fillRect(cx+i*8-2,cy-3,4,12);ctx.fillRect(cx-14,cy+10,28,3);ctx.restore();}
+function iconBulb(cx,cy,c){ctx.save();ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=2.4;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(cx,cy-3,7.5,0,Math.PI*2);ctx.stroke();ctx.fillRect(cx-4,cy+6,8,3);ctx.fillRect(cx-3,cy+10.5,6,2);
+  for(let a=0;a<5;a++){const an=Math.PI*(1+a/4);ctx.beginPath();ctx.moveTo(cx+Math.cos(an)*11,cy-3+Math.sin(an)*11);ctx.lineTo(cx+Math.cos(an)*15,cy-3+Math.sin(an)*15);ctx.stroke();}ctx.restore();}
+function iconChip(cx,cy,c){ctx.save();ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=2;rr(cx-10,cy-10,20,20,3);ctx.stroke();
+  for(let i=-1;i<=1;i++){const d=i*6;[[cx+d,cy-10,cx+d,cy-14],[cx+d,cy+10,cx+d,cy+14],[cx-10,cy+d,cx-14,cy+d],[cx+10,cy+d,cx+14,cy+d]].forEach(([a,b,e,f])=>{ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(e,f);ctx.stroke();});}
+  ctx.font=`800 10px ${SANS}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('AI',cx,cy+.5);ctx.restore();}
+function iconPhone(x,y){ctx.save();ctx.strokeStyle='#fff';ctx.lineWidth=2;rr(x-6,y-10,12,20,3);ctx.stroke();ctx.fillStyle='#fff';ctx.fillRect(x-2,y+5,4,2);ctx.restore();}
+function iconMail(x,y){ctx.save();ctx.fillStyle='#fff';rr(x-10,y-7,20,14,2);ctx.fill();ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(x-9,y-6);ctx.lineTo(x,y+1);ctx.lineTo(x+9,y-6);ctx.stroke();ctx.restore();}
+function iconPin(x,y,bg){ctx.save();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y-3,7.5,Math.PI*0.85,Math.PI*2.15);ctx.lineTo(x,y+10);ctx.closePath();ctx.fill();ctx.fillStyle=bg;ctx.beginPath();ctx.arc(x,y-3,3,0,Math.PI*2);ctx.fill();ctx.restore();}
+function check(x,y,c){ctx.save();ctx.strokeStyle=c;ctx.lineWidth=3.6;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(x-8,y);ctx.lineTo(x-2,y+6);ctx.lineTo(x+9,y-7);ctx.stroke();ctx.restore();}
+
+/* ---------- photo ---------- */
+let featherCache={key:'',cv:null};
+function feathered(dw,dh,L,R,Tp,B){
+  const w=Math.max(1,Math.round(dw*S)),h=Math.max(1,Math.round(dh*S));
+  const key=[w,h,L,R,Tp,B,photo.src].join('|');
+  if(featherCache.key===key)return featherCache.cv;
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+  g.drawImage(photo,0,0,w,h);
+  const f=Math.round(Math.min(w,h)*0.14);
+  const mask=document.createElement('canvas');mask.width=w;mask.height=h;const m=mask.getContext('2d');
+  m.fillStyle='#000';m.fillRect(0,0,w,h);m.globalCompositeOperation='destination-in';
+  // each edge multiplies alpha: draw full-size gradient that is opaque beyond the feather band
+  const band=(on,dir)=>{if(!on)return;const gr=dir==='L'?m.createLinearGradient(0,0,f,0):dir==='R'?m.createLinearGradient(w,0,w-f,0):dir==='T'?m.createLinearGradient(0,0,0,f):m.createLinearGradient(0,h,0,h-f);
+    gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,1)');m.fillStyle=gr;m.fillRect(0,0,w,h);};
+  band(L,'L');band(R,'R');band(Tp,'T');band(B,'B');
+  g.globalCompositeOperation='destination-in';g.drawImage(mask,0,0);
+  featherCache={key,cv:c};return c;
+}
+function drawPhoto(T){
+  const pw=600,ph=H;
+  ctx.save();ctx.beginPath();ctx.rect(0,0,pw,ph);ctx.clip();
+  if(photo){
+    const z=+$('zoom').value/100;
+    const base=Math.max(pw/photo.width,ph/photo.height)*z;
+    const dw=photo.width*base,dh=photo.height*base;
+    const ex=dw-pw,ey=dh-ph;
+    // 사진이 작을 때: 보이는 영역 가운데(가로)에 두고, 어깨가 파란 띠 아래로 들어가게 바닥을 맞춤
+    const CX=280, FOOT=520;
+    const bx = ex>=0 ? -ex/2 : CX-dw/2;
+    const by = ey>=0 ? -ey*0.35 : FOOT-dh;
+    const x=bx + (+$('ox').value/100)*Math.max(Math.abs(ex)/2,140);
+    const y=by + (+$('oy').value/100)*Math.max(Math.abs(ey)/2,140);
+    ctx.fillStyle=photoBg;ctx.fillRect(0,0,pw,ph);
+    ctx.drawImage(feathered(dw,dh,x>0.5,x+dw<pw-0.5,y>0.5,y+dh<ph-0.5),x,y,dw,dh);
+  }else{
+    const g=ctx.createLinearGradient(0,0,0,ph);g.addColorStop(0,'#e4ebf5');g.addColorStop(1,'#cfdaea');ctx.fillStyle=g;ctx.fillRect(0,0,pw,ph);
+    ctx.fillStyle='#b3c2d8';ctx.beginPath();ctx.arc(270,200,92,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(270,470,210,160,0,Math.PI,0);ctx.fill();
+    ctx.fillStyle='#7d8fab';ctx.font=`700 22px ${SANS}`;ctx.textAlign='center';ctx.fillText('사진을 올려주세요',270,345);
+  }
+  // soft fade into the background on the right
+  const fx=ctx.createLinearGradient(430,0,600,0);fx.addColorStop(0,'rgba(255,255,255,0)');fx.addColorStop(1,'rgba(248,251,255,1)');
+  ctx.fillStyle=fx;ctx.fillRect(430,0,170,ph);
+  ctx.restore();
+}
+
+
+/* ---------- 활동 내용에 맞는 아이콘 자동 선택 ---------- */
+const ICON_RULES=[
+  [/카페|바리스타|커피/,'☕'],[/요리|조리|급식|식당|반찬|주방|제빵|베이커리/,'🍳'],
+  [/금융|은행|회계|세무|경리|재무|보험|연금/,'💼'],[/번역|통역|외국어|영어|중국어|일본어|다문화/,'🌏'],
+  [/도서관|독서|책|그림책|동화/,'📖'],[/디지털|스마트폰|휴대폰|컴퓨터|키오스크|인터넷|IT|AI|앱|유튜브|SNS/i,'📱'],
+  [/교육|강사|교사|가르|학습|수업|튜터|과외|훈련/,'📚'],[/상담|안내|고객|응대|민원|접수|콜센터|전화/,'🤝'],
+  [/아이|아동|어린이|유아|등하교|손주|학생/,'🧒'],[/돌봄|요양|간병|복지|말벗|어르신|노인|장애/,'💗'],
+  [/건강|병원|의료|간호|보건|약국|운동지도/,'🏥'],[/운동|체육|스포츠|걷기|요가|탁구/,'🏃'],
+  [/농사|농업|원예|텃밭|정원|화훼|숲|조경|산림|꽃/,'🌱'],[/경비|안전|순찰|지킴이|보안|방범|교통/,'🛡️'],
+  [/운전|배송|택배|버스|기사|배달|물류/,'🚚'],[/청소|환경|미화|재활용|분리수거|정리/,'🧹'],
+  [/판매|매장|마트|편의점|가게|시장|홍보|마케팅|영업/,'🛒'],[/공예|미술|그림|디자인|캘리|사진|영상/,'🎨'],
+  [/음악|노래|악기|합창|공연/,'🎵'],[/관광|해설|가이드|여행|문화재|박물관/,'🗺️'],
+  [/수리|정비|기술|목공|전기|건축|집수리|기계|제조/,'🔧'],[/글쓰기|작가|기자|기록|자서전|편집/,'✍️'],
+  [/컨설팅|멘토|코칭|자문|창업|경영/,'🧭'],[/반려|동물|강아지|고양이/,'🐾'],
+  [/우편|우체국|편지/,'✉️'],[/봉사|나눔|기부|자원/,'🙌'],[/행정|사무|문서|서류|업무|관리|기획|데이터/,'📋'],
+];
+const iconCache={};           // AI가 찾아 준 아이콘
+const iconPending=new Set();
+function autoIcon(t){
+  if(iconCache[t])return iconCache[t];
+  for(const [re,e] of ICON_RULES) if(re.test(t)) return e;
+  return null;
+}
+let iconTimer=null;
+function queueAiIcons(list){
+  const todo=list.filter(t=>!iconCache[t]&&!iconPending.has(t));
+  if(!todo.length||!sample)return;
+  clearTimeout(iconTimer);
+  iconTimer=setTimeout(async()=>{
+    try{
+      const perm=await window.claude.use('permissions');
+      const st=perm?await perm.state('sample'):'unavailable';
+      if(st!=='granted')return;           // 허락 전에는 AI를 부르지 않고 기본 아이콘 사용
+      todo.forEach(t=>iconPending.add(t));
+      const r=await sample.json(`아래 각 활동에 가장 잘 어울리는 그림문자(이모지) 1개씩을 골라 주세요. 명함 아이콘으로 쓰입니다. 흔한 표준 이모지만 쓰세요.
+${todo.map(t=>'- '+t).join('\n')}
+JSON으로만 답하세요: {"icons":{"활동 그대로":"이모지"}}`,{modelTier:'quick'});
+      const m=(r&&r.icons)||{};
+      todo.forEach(t=>{const e=m[t]&&String(m[t]).trim();if(e&&e.length<=8)iconCache[t]=e;iconPending.delete(t);});
+      schedule();
+    }catch(e){todo.forEach(t=>iconPending.delete(t));}
+  },1500);
+}
+/* ---------- main render ---------- */
+function draw(){
+  const T=THEMES[theme];
+  ctx.setTransform(S,0,0,S,0,0);ctx.textBaseline='alphabetic';ctx.textAlign='left';
+  // background
+  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,T.bg1);bg.addColorStop(.55,'#ffffff');bg.addColorStop(1,'#f4f8fc');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawPhoto(T);
+  // background waves, bottom right
+  ctx.save();ctx.globalAlpha=.55;ctx.fillStyle=T.wave;ctx.beginPath();ctx.moveTo(760,H);ctx.bezierCurveTo(900,640,1010,560,W,520);ctx.lineTo(W,H);ctx.fill();
+  ctx.globalAlpha=.6;ctx.fillStyle=T.wave2;ctx.beginPath();ctx.moveTo(880,H);ctx.bezierCurveTo(980,660,1080,620,W,600);ctx.lineTo(W,H);ctx.fill();ctx.restore();
+
+  // blue band bottom-left
+  const band=()=>{ctx.beginPath();ctx.moveTo(0,490);ctx.bezierCurveTo(190,464,400,530,650,502);ctx.lineTo(650,H);ctx.lineTo(0,H);ctx.closePath();};
+  const bgd=ctx.createLinearGradient(0,0,650,0);bgd.addColorStop(0,T.dark);bgd.addColorStop(.6,T.main);bgd.addColorStop(.86,T.main);bgd.addColorStop(1,'rgba(255,255,255,0)');
+  band();ctx.fillStyle=bgd;ctx.fill();
+  ctx.save();ctx.strokeStyle=T.hi;ctx.globalAlpha=.85;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,481);ctx.bezierCurveTo(190,455,400,521,600,497);ctx.stroke();ctx.restore();
+
+  // name block
+  const name=val('name')||'이름', alias=val('alias');
+  ctx.fillStyle='#fff';ctx.textAlign='center';
+  fitFont(name,'800',44,SANS,205,24);ctx.fillText(name,122,alias?594:614);
+  if(alias){fitFont(`(${alias})`,'700',22,SANS,200,13);ctx.fillText(`(${alias})`,122,634);}
+  ctx.textAlign='left';
+  ctx.save();ctx.strokeStyle='rgba(255,255,255,.65)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(244,548);ctx.lineTo(244,668);ctx.stroke();ctx.restore();
+
+  const contacts=[[val('phone'),iconPhone],[val('email'),iconMail],[val('addr'),iconPin]].filter(c=>c[0]);
+  let cy=562;
+  for(const [t,ic] of contacts){ic(280,cy-6,T.main);ctx.fillStyle='#fff';fitFont(t,'500',17,SANS,258,12);ctx.fillText(t,302,cy);cy+=27;}
+  const slogan=val('slogan');
+  if(slogan){ctx.save();ctx.translate(266,cy+16);ctx.rotate(-0.03);ctx.fillStyle='#fff';const ss=fitFont(slogan,'400',28,BRUSH,290,16);ctx.fillText(slogan,0,0);
+    const w=ctx.measureText(slogan).width;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(4,10);ctx.quadraticCurveTo(w*.5,4,w*.62,7);ctx.stroke();ctx.restore();}
+
+  // headline
+  const hl=val('headline');
+  if(hl){
+    ctx.save();ctx.translate(548,118);ctx.rotate(-0.035);
+    ctx.fillStyle=T.ink;const hs=fitFont(hl,'400',84,BRUSH,540,40);ctx.fillText(hl,0,0);
+    const hw=ctx.measureText(hl).width;
+    ctx.strokeStyle='#f6b21b';ctx.lineCap='round';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(hw*0.16,hs*0.42);ctx.quadraticCurveTo(hw*.55,hs*.30,hw*.97,hs*.26);ctx.stroke();
+    ctx.lineWidth=5;[[-0.9,26],[-0.25,30],[0.4,26]].forEach(([a,l])=>{ctx.beginPath();ctx.moveTo(hw+18+Math.cos(a)*8,-hs*.45+Math.sin(a)*8);ctx.lineTo(hw+18+Math.cos(a)*l,-hs*.45+Math.sin(a)*l);ctx.stroke();});
+    ctx.restore();
+  }
+
+  // sections
+  const career=lines('career'), skills=lines('skills').map(s=>s.replace(/^[✔✓✅☑\-•·*]\s*/u,''));
+  const emo=/^((?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:️|‍(?:\p{Extended_Pictographic}))*)\s*/u;
+  const unmatched=[];
+  const ai=lines('ai').map(s=>{const m=s.match(emo);if(m)return {e:m[1],t:s.slice(m[0].length)};
+    const e=autoIcon(s);if(!e)unmatched.push(s);return {e:e||'⭐',t:s};});
+  if(unmatched.length)queueAiIcons(unmatched);
+  const secs=[];
+  if(career.length)secs.push({kind:'career',label:'경력',items:career});
+  if(skills.length)secs.push({kind:'skills',label:'잘하는 일',items:skills});
+  if(ai.length)secs.push({kind:'ai',label:'희망하는 업무',items:ai});
+  const LH={career:36,skills:32,ai:45};
+  const need=secs.reduce((a,s)=>a+52+s.items.length*LH[s.kind]+20,0);
+  const top=hl?172:70, avail=H-top-22;
+  const k=Math.min(1,avail/need);
+  let y=top+24*k;
+  const PX=586;
+  for(const s of secs){
+    // pill
+    ctx.font=`700 ${Math.round(23*Math.max(k,.82))}px ${SANS}`;
+    const lw=ctx.measureText(s.label).width;
+    const pc = s.kind==='career'?[T.main,T.dark,'#fff']: s.kind==='skills'?[T.p2,T.p2d,'#fff']:[T.pill3,T.chip,T.ink];
+    const ph=40*Math.max(k,.85);
+    rr(PX,y-ph/2,lw+90,ph,ph/2);ctx.fillStyle=pc[0];ctx.fill();
+    ctx.beginPath();ctx.arc(PX,y,ph*0.68,0,Math.PI*2);ctx.fillStyle=pc[1];ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
+    (s.kind==='career'?iconBank:s.kind==='skills'?iconBulb:iconChip)(PX,y+1,'#fff');
+    ctx.fillStyle=pc[2];ctx.textBaseline='middle';ctx.fillText(s.label,PX+44,y+1);ctx.textBaseline='alphabetic';
+    y+=48*k+ (s.kind==='ai'?14*k:4*k);
+    s.items.forEach((it,i)=>{
+      const lh=LH[s.kind]*k;
+      if(s.kind==='career'){ctx.fillStyle=T.ink;fitFont(it,'700',Math.round(25*Math.max(k,.8)),SANS,500,14);ctx.fillText(it,PX+40,y+8);}
+      else if(s.kind==='skills'){check(PX+50,y,T.p2);ctx.fillStyle='#1d2638';fitFont(it,'500',Math.round(22*Math.max(k,.8)),SANS,470,13);ctx.textBaseline='middle';ctx.fillText(it,PX+74,y+1);ctx.textBaseline='alphabetic';}
+      else{
+        const r=19*Math.max(k,.8);ctx.beginPath();ctx.arc(PX+58,y,r,0,Math.PI*2);ctx.fillStyle=DOTS[i%DOTS.length];ctx.fill();
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        if(it.e){ctx.font=`${Math.round(r*1.05)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;ctx.fillText(it.e,PX+58,y+1.5);}
+        else{ctx.fillStyle='#fff';ctx.font=`800 ${Math.round(r)}px ${SANS}`;ctx.fillText(String(i+1),PX+58,y+1);}
+        ctx.textAlign='left';ctx.fillStyle='#1d2638';fitFont(it.t,'700',Math.round(22*Math.max(k,.8)),SANS,440,13);ctx.fillText(it.t,PX+92,y+1);ctx.textBaseline='alphabetic';
+      }
+      y+=lh;
+    });
+    y+=20*k+ (s.kind==='career'?2:0);
+    if(s.kind==='skills')y+=6*k;
+  }
+}
+
+/* ---------- fonts + render loop ---------- */
+let timer=null, rendering=false, again=false;
+function schedule(){clearTimeout(timer);timer=setTimeout(render,120);}
+async function render(){
+  if(rendering){again=true;return;}
+  rendering=true;
+  const txt=[...document.querySelectorAll('#f input[type=text],#f textarea')].map(e=>e.value).join('')+'경력잘하는일AI가추천한새로운활동희망하는업무사진을올려주세요()0123456789';
+  try{await Promise.all([
+    document.fonts.load(`400 40px "Nanum Brush Script"`,txt),
+    document.fonts.load(`500 20px "Noto Sans KR"`,txt),
+    document.fonts.load(`700 20px "Noto Sans KR"`,txt),
+    document.fonts.load(`800 20px "Noto Sans KR"`,txt)]);}catch(e){}
+  draw();
+  $('out').src=cv.toDataURL('image/jpeg',0.92);
+  rendering=false;
+  if(again){again=false;render();}
+}
+render();
+
+/* ---------- save ---------- */
+let downloads=null;
+const fileName=()=>`명함_${(val('name')||'나의명함').replace(/[\\/:*?"<>|○]/g,'')||'나의명함'}.jpg`;
+async function cardBlob(){await render();return await new Promise(r=>cv.toBlob(r,'image/jpeg',0.95));}
+
+async function saveFile(st){
+  st.className='status';
+  const blob=await cardBlob();
+  if(!downloads){st.classList.add('warn');st.textContent='여기서는 파일 저장이 안 돼요. 명함 그림을 길게 누르거나 마우스 오른쪽 버튼으로 눌러 "이미지 저장"을 선택하세요.';return;}
+  try{
+    await downloads.save({filename:fileName(),data:blob});
+    st.classList.add('ok');
+    st.textContent=IS_ANDROID?'저장했어요. 갤러리 앱의 "다운로드" 앨범에서 볼 수 있어요.':IS_IOS?'저장했어요. 공유 창에서 "이미지 저장"을 골랐다면 사진 앱에 들어 있어요.':'저장했어요: '+fileName();
+  }catch(e){
+    if(e&&e.code==='declined'){st.textContent='저장을 취소했어요.';}
+    else if(e&&e.code==='rate_limited'){st.classList.add('warn');st.textContent='저장 창이 이미 열려 있어요. 잠시 후 다시 눌러 주세요.';}
+    else{st.classList.add('warn');st.textContent='저장하지 못했어요. 명함 그림을 길게 눌러 저장해 주세요.';}
+  }
+}
+
+let lastFocus=null;
+async function openSheet(){
+  lastFocus=document.activeElement;
+  await render();
+  $('sheetImg').src=cv.toDataURL('image/jpeg',0.95);
+  const steps=IS_IOS
+    ?['위 명함 그림을 <b>손가락으로 길게</b> 누르세요.','메뉴가 나오면 <b>"사진 앱에 저장"</b>(또는 "이미지 저장")을 누르세요.','<b>사진</b> 앱을 열면 명함이 들어 있어요.']
+    :['위 명함 그림을 <b>손가락으로 길게</b> 누르세요.','메뉴가 나오면 <b>"이미지 다운로드"</b>(또는 "이미지 저장")를 누르세요.','<b>갤러리</b> 앱의 다운로드 앨범에서 명함을 볼 수 있어요.'];
+  $('sheetSteps').innerHTML=steps.map(t=>`<li>${t}</li>`).join('');
+  $('sheetFile').hidden=!downloads;
+  $('sheetFile').textContent=IS_IOS?'길게 눌러도 안 되면: 공유 창으로 저장하기':'길게 눌러도 안 되면: 파일로 저장하기';
+  $('sheetStatus').textContent='';$('sheetStatus').className='status';
+  $('sheet').hidden=false;document.body.style.overflow='hidden';
+  $('sheetClose').focus();
+}
+function closeSheet(){$('sheet').hidden=true;document.body.style.overflow='';if(lastFocus)lastFocus.focus();}
+$('sheetClose').onclick=closeSheet;
+$('sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sheet').hidden)closeSheet();});
+$('sheetFile').onclick=()=>saveFile($('sheetStatus'));
+
+$('save').onclick=()=>{ if(IS_MOBILE) openSheet(); else saveFile($('saveStatus')); };
+if(IS_MOBILE)$('save').textContent='⬇ 갤러리에 저장하기';
+
+/* ---------- AI recommend ---------- */
+let sample=null;
+async function aiRecommend(){
+  const btn=$('aiBtn'),st=$('aiStatus');
+  const career=lines('career').join(', '),skills=lines('skills').join(', ');
+  if(!career&&!skills){st.className='status warn';st.textContent='경력이나 잘하는 일을 먼저 적어 주세요.';return;}
+  btn.disabled=true;st.className='status';st.textContent='AI가 생각하고 있어요… (10~30초)';
+  try{
+    const r=await sample.json(
+`당신은 시니어 일자리 상담사입니다. 아래 어르신의 경력과 잘하는 일을 보고, 새로 도전해 볼 만한 일자리·활동 3가지를 추천하세요.
+- 각 항목은 14자 이내의 짧은 한국어 명사구, 맨 앞에 내용에 어울리는 그림문자 1개 + 공백 (예: "💼 금융·행정 업무 지원")
+- 실제 시니어 일자리로 이어질 수 있는 현실적인 활동
+경력: ${career||'(없음)'}
+잘하는 일: ${skills||'(없음)'}
+JSON으로만 답하세요: {"items":["...","...","..."]}`,{modelTier:'quick',cache:false});
+    const items=(r&&Array.isArray(r.items)?r.items:[]).map(s=>String(s).trim()).filter(Boolean).slice(0,4);
+    if(!items.length)throw {code:'empty'};
+    $('ai').value=items.join('\n');schedule();
+    st.className='status ok';st.textContent='추천을 넣었어요. 마음에 들지 않으면 직접 고치거나 다시 눌러 보세요.';
+  }catch(e){
+    st.className='status warn';
+    if(e&&e.code==='not_granted'){st.textContent='AI 추천 사용이 허용되지 않았어요. 직접 적어 주셔도 됩니다.';btn.hidden=true;}
+    else if(e&&e.code==='rate_limited'){st.textContent='잠시 후 다시 눌러 주세요.';}
+    else st.textContent='추천을 받지 못했어요. 잠시 후 다시 시도하거나 직접 적어 주세요.';
+  }finally{btn.disabled=false;}
+}
+$('aiBtn').onclick=aiRecommend;
+
+(async()=>{
+  if(!window.claude||!window.claude.use)return;
+  try{downloads=await window.claude.use('downloads');}catch(e){}
+  try{sample=await window.claude.use('sample');if(sample)$('aiBtn').hidden=false;}catch(e){}
+})();
+</script>
+
+</body></html>
