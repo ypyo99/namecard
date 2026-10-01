@@ -383,7 +383,7 @@ function draw(){
   const top=hl?172:70, avail=H-top-22;
   const k=Math.min(1,avail/need);
   let y=top+24*k;
-  const PX=636;
+  const PX=686;
   for(const s of secs){
     // pill
     ctx.font=`700 ${Math.round(23*Math.max(k,.82))}px ${SANS}`;
@@ -398,14 +398,14 @@ function draw(){
     y+=48*k+ (s.kind==='ai'?14*k:4*k);
     s.items.forEach((it,i)=>{
       const lh=LH[s.kind]*k;
-      if(s.kind==='career'){ctx.fillStyle=T.ink;fitFont(it,'700',Math.round(25*Math.max(k,.8)),SANS,460,14);ctx.fillText(it,PX+40,y+8);}
-      else if(s.kind==='skills'){check(PX+50,y,T.p2);ctx.fillStyle='#1d2638';fitFont(it,'500',Math.round(22*Math.max(k,.8)),SANS,440,13);ctx.textBaseline='middle';ctx.fillText(it,PX+74,y+1);ctx.textBaseline='alphabetic';}
+      if(s.kind==='career'){ctx.fillStyle=T.ink;fitFont(it,'700',Math.round(25*Math.max(k,.8)),SANS,420,14);ctx.fillText(it,PX+40,y+8);}
+      else if(s.kind==='skills'){check(PX+50,y,T.p2);ctx.fillStyle='#1d2638';fitFont(it,'500',Math.round(22*Math.max(k,.8)),SANS,390,13);ctx.textBaseline='middle';ctx.fillText(it,PX+74,y+1);ctx.textBaseline='alphabetic';}
       else{
         const r=19*Math.max(k,.8);ctx.beginPath();ctx.arc(PX+58,y,r,0,Math.PI*2);ctx.fillStyle=DOTS[i%DOTS.length];ctx.fill();
         ctx.textAlign='center';ctx.textBaseline='middle';
         if(it.e){ctx.font=`${Math.round(r*1.05)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;ctx.fillText(it.e,PX+58,y+1.5);}
         else{ctx.fillStyle='#fff';ctx.font=`800 ${Math.round(r)}px ${SANS}`;ctx.fillText(String(i+1),PX+58,y+1);}
-        ctx.textAlign='left';ctx.fillStyle='#1d2638';fitFont(it.t,'700',Math.round(22*Math.max(k,.8)),SANS,420,13);ctx.fillText(it.t,PX+92,y+1);ctx.textBaseline='alphabetic';
+        ctx.textAlign='left';ctx.fillStyle='#1d2638';fitFont(it.t,'700',Math.round(22*Math.max(k,.8)),SANS,370,13);ctx.fillText(it.t,PX+92,y+1);ctx.textBaseline='alphabetic';
       }
       y+=lh;
     });
