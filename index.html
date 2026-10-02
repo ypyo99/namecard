@@ -24,15 +24,16 @@ body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:17px;l
 .wrap{max-width:1240px;margin:0 auto;display:grid;gap:20px}
 header h1{font-size:28px;margin:0;letter-spacing:-.01em;text-wrap:balance}
 header h1 span{font-family:var(--brush);font-weight:400;font-size:40px;color:var(--title-color);margin-right:6px}
-header p{margin:4px 0 0;color:var(--muted)}
+header p{margin:4px 0 0;color:var(--muted);line-height:1.7}
+#saveText b{background:var(--accent);color:var(--accent-ink);padding:4px 10px;border-radius:6px;font-weight:700;display:inline-block;margin:0 2px;letter-spacing:-0.5px}
 .grid{display:grid;grid-template-columns:440px minmax(0,1fr);gap:20px;align-items:start}
 .form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:22px;min-width:0}
 fieldset{border:0;margin:0;padding:0;display:grid;gap:12px;min-width:0}
-legend{font-weight:700;font-size:15px;letter-spacing:.04em;color:var(--accent-ink);background:var(--accent);padding:6px 16px;border-radius:8px;margin-bottom:4px;box-shadow:0 3px 8px rgba(0,0,0,.15);justify-self:start}
+legend{font-weight:700;font-size:15px;letter-spacing:.04em;color:var(--accent-ink);background:var(--accent);padding:6px 16px;border-radius:8px;margin-bottom:14px;box-shadow:0 3px 8px rgba(0,0,0,.15);justify-self:start}
 label{display:grid;gap:4px;font-weight:500;font-size:16px}
 .inline-label{grid-template-columns:72px 1fr;align-items:center;gap:12px}
 label small{font-weight:400;color:var(--muted);font-size:14px}
-input[type=text],textarea{font:inherit;font-size:18px;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+input[type=text],textarea{font:inherit;font-size:18px;color:#0a3a8c;background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;font-weight:600}
 textarea{resize:vertical;min-height:84px;line-height:1.5}
 input:focus-visible,textarea:focus-visible,button:focus-visible,.file:focus-within{outline:3px solid var(--accent);outline-offset:2px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -52,6 +53,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .btn:disabled{opacity:.55;cursor:wait}
 .note{font-size:14px;color:var(--muted);margin:0}
 .status{font-size:15px;margin:0;min-height:1.4em}
+.status:empty{display:none}
 .status.ok{color:var(--ok)} .status.warn{color:var(--warn)}
 .preview{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:grid;gap:14px;min-width:0}
 .cardbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -87,10 +89,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <div class="legend-row">
           <legend style="margin:0">1. 얼굴 사진</legend>
           <div class="legend-actions" id="photoRow">
-            <label class="file" id="fileLabel" style="font-size:14px;padding:8px 12px">🖼️ 갤러리에서 선택
+            <label class="file" id="fileLabel" style="font-size:14px;padding:8px 12px;font-weight:800">🖼️ 갤러리에서 선택
               <input type="file" id="photo" accept="image/*">
             </label>
-            <label class="file" id="cameraLabel" style="font-size:14px;padding:8px 12px">📸 카메라로 찍기
+            <label class="file" id="cameraLabel" style="font-size:14px;padding:8px 12px;font-weight:800">📸 카메라로 찍기
               <input type="file" id="photoCam" accept="image/*" capture="user">
             </label>
           </div>
@@ -116,7 +118,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <label><b>강점 (한 줄에 하나씩, 3개 정도)</b><textarea id="skills" rows="3">행동력.실행력.부지런함
 사람들과 소통하기
 고객 응대하기</textarea></label>
-        <label><b>희망하는 업무</b> <small>한 줄에 하나씩 적으면 내용에 맞는 아이콘이 자동으로 들어가요. 원하는 그림문자를 맨 앞에 직접 넣어도 됩니다.</small><textarea id="ai" rows="4">시설관리
+        <label><b>희망하는 업무</b> <small>한 줄에 하나씩 적으면 내용에 맞는 아이콘이 자동으로 들어가요.</small><textarea id="ai" rows="4">시설관리
 환경정비.물품관리
 배송.운반
 안전지킴이</textarea></label>
@@ -133,7 +135,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <section class="preview" aria-label="명함 미리보기">
       <div class="cardbox"><img id="out" alt="명함 미리보기"></div>
       <div class="actions">
-        <button type="button" class="btn" id="save">⬇ 한 장짜리 이미지 저장</button>
+        <button type="button" class="btn" id="save">⬇ JPG로 저장하기</button>
         <button type="button" class="btn" id="saveA4" style="margin-top:2px; background: #28a745; color: white; border: none;">🖨️ A4 프린트용 모아 찍기 (10장)</button>
         <p class="status" id="saveStatus" aria-live="polite"></p>
       </div>
