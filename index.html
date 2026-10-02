@@ -191,6 +191,17 @@ const handlePhoto = e=>{
   const url=URL.createObjectURL(f); const im=new Image();
   im.onload=()=>{
     photo=im;$('zoom').value=100;$('ox').value=0;$('oy').value=0;photoBg=edgeColor(im);
+    try {
+      const c = document.createElement('canvas');
+      let w = photo.width, h = photo.height;
+      if (w > 1000 || h > 1000) {
+        const r = 1000 / Math.max(w, h);
+        w *= r; h *= r;
+      }
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(photo, 0, 0, w, h);
+      photo.b64 = c.toDataURL('image/jpeg', 0.85);
+    } catch(err) {}
     if(IS_MOBILE) {
       $('fileLabel').firstChild.textContent='🖼️ 다른 사진 선택 ';
       $('cameraLabel').firstChild.textContent='📸 다시 찍기 ';
@@ -405,6 +416,67 @@ function draw(){
   }
 }
 
+/* ---------- save state ---------- */
+function saveState() {
+  const state = {
+    name: $('name').value, phone: $('phone').value, email: $('email').value,
+    headline: $('headline').value, career: $('career').value, skills: $('skills').value, ai: $('ai').value,
+    zoom: $('zoom').value, ox: $('ox').value, oy: $('oy').value,
+    theme: theme, photoBg: photoBg
+  };
+  if (photo && photo.b64) {
+    state.photoSrc = photo.b64;
+  } else if (photo && photo.src && photo.src.startsWith('data:')) {
+    state.photoSrc = photo.src;
+  } else {
+    try {
+        const existing = JSON.parse(localStorage.getItem('cardState') || '{}');
+        if (existing.photoSrc) state.photoSrc = existing.photoSrc;
+    } catch(e) {}
+  }
+  try { localStorage.setItem('cardState', JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('cardState');
+    if (!saved) return false;
+    const state = JSON.parse(saved);
+    if (state.name !== undefined) $('name').value = state.name;
+    if (state.phone !== undefined) $('phone').value = state.phone;
+    if (state.email !== undefined) $('email').value = state.email;
+    if (state.headline !== undefined) $('headline').value = state.headline;
+    if (state.career !== undefined) $('career').value = state.career;
+    if (state.skills !== undefined) $('skills').value = state.skills;
+    if (state.ai !== undefined) $('ai').value = state.ai;
+    if (state.zoom !== undefined) $('zoom').value = state.zoom;
+    if (state.ox !== undefined) $('ox').value = state.ox;
+    if (state.oy !== undefined) $('oy').value = state.oy;
+    if (state.theme && THEMES[state.theme]) {
+      theme = state.theme;
+      tbox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.id === 'theme-'+theme));
+    }
+    if (state.photoBg) photoBg = state.photoBg;
+    if (state.photoSrc) {
+      const im = new Image();
+      im.onload = () => {
+        if (photo && photo !== defaultImg) return;
+        photo = im; photo.b64 = state.photoSrc;
+        if(IS_MOBILE) {
+          $('fileLabel').firstChild.textContent='🖼️ 다른 사진 선택 ';
+          $('cameraLabel').firstChild.textContent='📸 다시 찍기 ';
+        } else {
+          $('fileLabel').firstChild.textContent='📷 다른 사진으로 바꾸기 ';
+        }
+        schedule();
+      };
+      im.src = state.photoSrc;
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
 /* ---------- fonts + render loop ---------- */
 let timer=null, rendering=false, again=false;
 function schedule(){clearTimeout(timer);timer=setTimeout(render,120);}
@@ -419,15 +491,14 @@ async function render(){
     document.fonts.load(`800 20px "Noto Sans KR"`,txt)]);}catch(e){}
   draw();
   $('out').src=cv.toDataURL('image/jpeg',0.92);
+  saveState();
   rendering=false;
   if(again){again=false;render();}
 }
-render();
-
 // Load default sample photo
 const defaultImg = new Image();
 defaultImg.onload = () => {
-  if (photo) return; // 이미 사용자가 사진을 선택한 경우 무시
+  if (photo && photo !== defaultImg) return; // 이미 사용자가 사진을 선택한 경우 무시
   photo = defaultImg;
   photoBg = edgeColor(defaultImg);
   if(IS_MOBILE) {
@@ -438,7 +509,11 @@ defaultImg.onload = () => {
   }
   schedule();
 };
-defaultImg.src = 'sample.png';
+
+if (!loadState()) {
+  defaultImg.src = 'sample.png';
+}
+schedule();
 
 /* ---------- save ---------- */
 let downloads=null;
