@@ -105,7 +105,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </fieldset>
 
       <fieldset>
-        <legend>2. 기본 정보</legend>
+        <div class="legend-row">
+          <legend style="margin:0">2. 기본 정보</legend>
+          <div class="legend-actions">
+            <button type="button" class="btn ghost" id="infoFontMinus" style="width:32px;padding:4px 0;text-align:center;font-size:16px">-</button>
+            <span style="font-size:14px;font-weight:700;min-width:38px;text-align:center;align-self:center" id="infoFontLabel">100%</span>
+            <button type="button" class="btn ghost" id="infoFontPlus" style="width:32px;padding:4px 0;text-align:center;font-size:16px">+</button>
+          </div>
+        </div>
         <label class="inline-label"><b>이름</b> <input type="text" id="name" value="홍길동"></label>
         <label class="inline-label"><b>전화번호</b> <input type="text" id="phone" value="010-1234-5678"></label>
         <label class="inline-label"><b>이메일</b> <input type="text" id="email" value="gildong.hong@gmail.com"></label>
@@ -180,7 +187,7 @@ const THEMES={
   orange:{label:'주황',dark:'#c2410c',main:'#ea580c',hi:'#fb923c',ink:'#431407',p2:'#2167cf',p2d:'#0a3a8c',pill3:'#ffedd5',chip:'#c2410c',bg1:'#fff7ed',wave:'#fed7aa',wave2:'#ffedd5'},
 };
 const DOTS=['#f08a24','#8a6cf0','#14a0a0','#e2557a','#3f86e8'];
-let theme='blue', photo=null, photoBg='#eef2f7';
+let theme='blue', photo=null, photoBg='#eef2f7', infoFontSize=100;
 function edgeColor(im){try{const c=document.createElement('canvas');c.width=c.height=40;const g=c.getContext('2d');g.drawImage(im,0,0,40,40);const d=g.getImageData(0,0,40,40).data;let r=0,gg=0,b=0,n=0;for(let y=0;y<40;y++)for(let x=0;x<40;x++){if(y>4&&(y>22||(x>2&&x<37)))continue;const i=(y*40+x)*4;r+=d[i];gg+=d[i+1];b+=d[i+2];n++;}return `rgb(${r/n|0},${gg/n|0},${b/n|0})`;}catch(e){return '#eef2f7';}}
 
 // theme buttons
@@ -192,6 +199,9 @@ for(const [k,t] of Object.entries(THEMES)){
   b.onclick=()=>{theme=k;tbox.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));schedule();};
   tbox.appendChild(b);
 }
+
+$('infoFontMinus').onclick=()=>{if(infoFontSize>50){infoFontSize-=10;$('infoFontLabel').textContent=infoFontSize+'%';schedule();}};
+$('infoFontPlus').onclick=()=>{if(infoFontSize<200){infoFontSize+=10;$('infoFontLabel').textContent=infoFontSize+'%';schedule();}};
 
 const handlePhoto = e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -359,11 +369,18 @@ function draw(){
   // name block
   const name=val('name')||'이름';
   ctx.fillStyle='#fff';ctx.textAlign='left';
-  fitFont(name,'800',56,SANS,260,28);ctx.fillText(name,50,560);
+  const kInfo = infoFontSize / 100;
+  const fsName = Math.round(56 * kInfo);
+  fitFont(name,'800',fsName,SANS,260,28);ctx.fillText(name,50,560);
   
   const contacts=[[val('phone'),iconPhone],[val('email'),iconMail]].filter(c=>c[0]);
-  let cy=620;
-  for(const [t,ic] of contacts){ic(62,cy-11,T.main);ctx.fillStyle='#fff';fitFont(t,'500',36,SANS,480,22);ctx.fillText(t,90,cy);cy+=44;}
+  let cy = 560 + 60 * kInfo;
+  const fsContact = Math.round(36 * kInfo);
+  for(const [t,ic] of contacts){
+    ctx.save(); ctx.translate(62, cy - 11 * kInfo); ctx.scale(kInfo, kInfo); ic(0, 0, T.main); ctx.restore();
+    ctx.fillStyle='#fff'; fitFont(t,'500',fsContact,SANS,480,22); ctx.fillText(t, 62 + 28 * kInfo, cy);
+    cy += 44 * kInfo;
+  }
 
   // headline
   const hl=val('headline');
@@ -429,7 +446,7 @@ function saveState() {
     name: $('name').value, phone: $('phone').value, email: $('email').value,
     headline: $('headline').value, career: $('career').value, skills: $('skills').value, ai: $('ai').value,
     zoom: $('zoom').value, ox: $('ox').value, oy: $('oy').value,
-    theme: theme, photoBg: photoBg
+    theme: theme, photoBg: photoBg, infoFontSize: infoFontSize
   };
   if (photo && photo.b64) {
     state.photoSrc = photo.b64;
@@ -462,6 +479,10 @@ function loadState() {
     if (state.theme && THEMES[state.theme]) {
       theme = state.theme;
       tbox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.id === 'theme-'+theme));
+    }
+    if (state.infoFontSize !== undefined) {
+      infoFontSize = state.infoFontSize;
+      $('infoFontLabel').textContent = infoFontSize + '%';
     }
     if (state.photoBg) photoBg = state.photoBg;
     if (state.photoSrc) {
