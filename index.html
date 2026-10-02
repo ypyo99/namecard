@@ -74,7 +74,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <div class="wrap">
   <header>
-    <h1><span>아직도 할 일이 많습니다!</span><br>명함 만들기</h1>
+    <h1><span>움직이는 힘으로 결과를 만듭니다</span><br>명함 만들기</h1>
     <p>사진을 올리고 내용을 고치면 명함이 바로 바뀝니다. <span id="saveText">다 되면 <b>JPG로 저장하기</b>를 눌러 주세요.</span></p>
   </header>
 
@@ -100,27 +100,23 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
       <fieldset>
         <legend>2. 기본 정보</legend>
-        <div class="row2">
-          <label>이름 <input type="text" id="name" value="홍길동"></label>
-          <label>호·별칭 <small>괄호 안에 표시</small><input type="text" id="alias" value="다니엘"></label>
-        </div>
+        <label>이름 <input type="text" id="name" value="홍길동"></label>
         <label>전화번호 <input type="text" id="phone" value="010-1234-5678"></label>
-        <label>이메일 <input type="text" id="email" value="youngpyo@naver.com"></label>
-        <label>사는 곳 <input type="text" id="addr" value="서울시 성동구"></label>
-        <label>나의 한마디 <input type="text" id="slogan" value="늘 배우고, 늘 나누겠습니다."></label>
+        <label>이메일 <input type="text" id="email" value="gildong.hong@gmail.com"></label>
       </fieldset>
 
       <fieldset>
         <legend>3. 명함 내용</legend>
-        <label>큰 제목 <input type="text" id="headline" value="아직도 할 일이 많습니다!"></label>
+        <label>큰 제목 <input type="text" id="headline" value="움직이는 힘으로 결과를 만듭니다"></label>
         <label>경력 <small>한 줄에 하나씩</small><textarea id="career" rows="2">은행 근무 25년</textarea></label>
-        <label>잘하는 일 <small>한 줄에 하나씩 (3개 정도)</small><textarea id="skills" rows="3">사람들과 소통하기
-문서 작성하기
+        <label>강점 <small>한 줄에 하나씩 (3개 정도)</small><textarea id="skills" rows="3">행동력.실행력.부지런함
+사람들과 소통하기
 고객 응대하기</textarea></label>
-        <label>희망하는 업무 <small>한 줄에 하나씩 적으면 내용에 맞는 아이콘이 자동으로 들어가요. 원하는 그림문자를 맨 앞에 직접 넣어도 됩니다.</small><textarea id="ai" rows="3">금융·행정 업무 지원
-고객 안내·상담
-디지털 교육 보조</textarea></label>
-        <button type="button" class="btn ghost" id="aiBtn" hidden>✨ 경력과 잘하는 일로 AI에게 희망 업무 추천받기</button>
+        <label>희망하는 업무 <small>한 줄에 하나씩 적으면 내용에 맞는 아이콘이 자동으로 들어가요. 원하는 그림문자를 맨 앞에 직접 넣어도 됩니다.</small><textarea id="ai" rows="4">시설관리
+환경정비.물품관리
+배송.운반
+안전지킴이</textarea></label>
+        <button type="button" class="btn ghost" id="aiBtn" hidden>✨ 경력과 강점으로 AI에게 희망 업무 추천받기</button>
         <p class="status" id="aiStatus" aria-live="polite"></p>
       </fieldset>
 
@@ -133,7 +129,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <section class="preview" aria-label="명함 미리보기">
       <div class="cardbox"><img id="out" alt="명함 미리보기"></div>
       <div class="actions">
-        <button type="button" class="btn" id="save">⬇ JPG로 저장하기</button>
+        <button type="button" class="btn" id="save">⬇ 한 장짜리 이미지 저장</button>
+        <button type="button" class="btn" id="saveA4" style="margin-top:2px; background: #28a745; color: white; border: none;">🖨️ A4 프린트용 모아 찍기 (10장)</button>
         <p class="status" id="saveStatus" aria-live="polite"></p>
       </div>
     </section>
@@ -150,11 +147,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <button type="button" class="btn" id="sheetClose">닫기</button>
   </div>
 </div>
-<canvas id="cv" width="2340" height="1376" hidden></canvas>
+<canvas id="cv" width="2380" height="1376" hidden></canvas>
 
 <script>
 const $=id=>document.getElementById(id);
-const W=1170,H=688,S=2;
+const W=1190,H=688,S=2;
 const cv=$('cv'),ctx=cv.getContext('2d');
 const SANS='"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
 const BRUSH='"Nanum Brush Script","Noto Sans KR",cursive';
@@ -342,25 +339,19 @@ function draw(){
   ctx.save();ctx.strokeStyle=T.hi;ctx.globalAlpha=.85;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,481);ctx.bezierCurveTo(190,455,400,521,600,497);ctx.stroke();ctx.restore();
 
   // name block
-  const name=val('name')||'이름', alias=val('alias');
-  ctx.fillStyle='#fff';ctx.textAlign='center';
-  fitFont(name,'800',44,SANS,205,24);ctx.fillText(name,122,alias?594:614);
-  if(alias){fitFont(`(${alias})`,'700',22,SANS,200,13);ctx.fillText(`(${alias})`,122,634);}
-  ctx.textAlign='left';
-  ctx.save();ctx.strokeStyle='rgba(255,255,255,.65)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(244,548);ctx.lineTo(244,668);ctx.stroke();ctx.restore();
-
-  const contacts=[[val('phone'),iconPhone],[val('email'),iconMail],[val('addr'),iconPin]].filter(c=>c[0]);
-  let cy=562;
-  for(const [t,ic] of contacts){ic(280,cy-6,T.main);ctx.fillStyle='#fff';fitFont(t,'500',17,SANS,258,12);ctx.fillText(t,302,cy);cy+=27;}
-  const slogan=val('slogan');
-  if(slogan){ctx.save();ctx.translate(266,cy+16);ctx.rotate(-0.03);ctx.fillStyle='#fff';const ss=fitFont(slogan,'400',28,BRUSH,290,16);ctx.fillText(slogan,0,0);
-    const w=ctx.measureText(slogan).width;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(4,10);ctx.quadraticCurveTo(w*.5,4,w*.62,7);ctx.stroke();ctx.restore();}
+  const name=val('name')||'이름';
+  ctx.fillStyle='#fff';ctx.textAlign='left';
+  fitFont(name,'800',56,SANS,260,28);ctx.fillText(name,50,560);
+  
+  const contacts=[[val('phone'),iconPhone],[val('email'),iconMail]].filter(c=>c[0]);
+  let cy=620;
+  for(const [t,ic] of contacts){ic(62,cy-11,T.main);ctx.fillStyle='#fff';fitFont(t,'500',36,SANS,480,22);ctx.fillText(t,90,cy);cy+=44;}
 
   // headline
   const hl=val('headline');
   if(hl){
-    ctx.save();ctx.translate(548,118);ctx.rotate(-0.035);
-    ctx.fillStyle=T.ink;const hs=fitFont(hl,'400',84,BRUSH,540,40);ctx.fillText(hl,0,0);
+    ctx.save();ctx.translate(548,75);ctx.rotate(-0.035);
+    ctx.fillStyle=T.ink;const hs=fitFont(hl,'400',96,BRUSH,580,48);ctx.fillText(hl,0,0);
     const hw=ctx.measureText(hl).width;
     ctx.strokeStyle='#f6b21b';ctx.lineCap='round';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(hw*0.16,hs*0.42);ctx.quadraticCurveTo(hw*.55,hs*.30,hw*.97,hs*.26);ctx.stroke();
     ctx.lineWidth=5;[[-0.9,26],[-0.25,30],[0.4,26]].forEach(([a,l])=>{ctx.beginPath();ctx.moveTo(hw+18+Math.cos(a)*8,-hs*.45+Math.sin(a)*8);ctx.lineTo(hw+18+Math.cos(a)*l,-hs*.45+Math.sin(a)*l);ctx.stroke();});
@@ -376,36 +367,36 @@ function draw(){
   if(unmatched.length)queueAiIcons(unmatched);
   const secs=[];
   if(career.length)secs.push({kind:'career',label:'경력',items:career});
-  if(skills.length)secs.push({kind:'skills',label:'잘하는 일',items:skills});
+  if(skills.length)secs.push({kind:'skills',label:'강점',items:skills});
   if(ai.length)secs.push({kind:'ai',label:'희망하는 업무',items:ai});
-  const LH={career:36,skills:32,ai:45};
+  const LH={career:42,skills:38,ai:50};
   const need=secs.reduce((a,s)=>a+52+s.items.length*LH[s.kind]+20,0);
-  const top=hl?172:70, avail=H-top-22;
+  const top=hl?130:70, avail=H-top-22;
   const k=Math.min(1,avail/need);
   let y=top+24*k;
   const PX=686;
   for(const s of secs){
     // pill
-    ctx.font=`700 ${Math.round(23*Math.max(k,.82))}px ${SANS}`;
+    ctx.font=`700 ${Math.round(28*Math.max(k,.82))}px ${SANS}`;
     const lw=ctx.measureText(s.label).width;
     const pc = s.kind==='career'?[T.main,T.dark,'#fff']: s.kind==='skills'?[T.p2,T.p2d,'#fff']:[T.pill3,T.chip,T.ink];
-    const ph=40*Math.max(k,.85);
-    rr(PX,y-ph/2,lw+90,ph,ph/2);ctx.fillStyle=pc[0];ctx.fill();
+    const ph=46*Math.max(k,.85);
+    rr(PX,y-ph/2,lw+100,ph,ph/2);ctx.fillStyle=pc[0];ctx.fill();
     ctx.beginPath();ctx.arc(PX,y,ph*0.68,0,Math.PI*2);ctx.fillStyle=pc[1];ctx.fill();
     ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
     (s.kind==='career'?iconBank:s.kind==='skills'?iconBulb:iconStar)(PX,y+1,'#fff');
-    ctx.fillStyle=pc[2];ctx.textBaseline='middle';ctx.fillText(s.label,PX+44,y+1);ctx.textBaseline='alphabetic';
-    y+=48*k+ (s.kind==='ai'?14*k:4*k);
+    ctx.fillStyle=pc[2];ctx.textBaseline='middle';ctx.fillText(s.label,PX+50,y+2);ctx.textBaseline='alphabetic';
+    y+=54*k+ (s.kind==='ai'?14*k:4*k);
     s.items.forEach((it,i)=>{
       const lh=LH[s.kind]*k;
-      if(s.kind==='career'){ctx.fillStyle=T.ink;fitFont(it,'700',Math.round(25*Math.max(k,.8)),SANS,420,14);ctx.fillText(it,PX+40,y+8);}
-      else if(s.kind==='skills'){check(PX+50,y,T.p2);ctx.fillStyle='#1d2638';fitFont(it,'500',Math.round(22*Math.max(k,.8)),SANS,390,13);ctx.textBaseline='middle';ctx.fillText(it,PX+74,y+1);ctx.textBaseline='alphabetic';}
+      if(s.kind==='career'){ctx.fillStyle=T.ink;fitFont(it,'700',Math.round(30*Math.max(k,.8)),SANS,420,16);ctx.fillText(it,PX+40,y+8);}
+      else if(s.kind==='skills'){check(PX+50,y,T.p2);ctx.fillStyle='#1d2638';fitFont(it,'700',Math.round(30*Math.max(k,.8)),SANS,390,15);ctx.textBaseline='middle';ctx.fillText(it,PX+74,y+1);ctx.textBaseline='alphabetic';}
       else{
-        const r=19*Math.max(k,.8);ctx.beginPath();ctx.arc(PX+58,y,r,0,Math.PI*2);ctx.fillStyle=DOTS[i%DOTS.length];ctx.fill();
+        const r=22*Math.max(k,.8);ctx.beginPath();ctx.arc(PX+58,y,r,0,Math.PI*2);ctx.fillStyle=DOTS[i%DOTS.length];ctx.fill();
         ctx.textAlign='center';ctx.textBaseline='middle';
         if(it.e){ctx.font=`${Math.round(r*1.05)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;ctx.fillText(it.e,PX+58,y+1.5);}
         else{ctx.fillStyle='#fff';ctx.font=`800 ${Math.round(r)}px ${SANS}`;ctx.fillText(String(i+1),PX+58,y+1);}
-        ctx.textAlign='left';ctx.fillStyle='#1d2638';fitFont(it.t,'700',Math.round(22*Math.max(k,.8)),SANS,370,13);ctx.fillText(it.t,PX+92,y+1);ctx.textBaseline='alphabetic';
+        ctx.textAlign='left';ctx.fillStyle='#1d2638';fitFont(it.t,'700',Math.round(30*Math.max(k,.8)),SANS,370,15);ctx.fillText(it.t,PX+92,y+1);ctx.textBaseline='alphabetic';
       }
       y+=lh;
     });
@@ -420,7 +411,7 @@ function schedule(){clearTimeout(timer);timer=setTimeout(render,120);}
 async function render(){
   if(rendering){again=true;return;}
   rendering=true;
-  const txt=[...document.querySelectorAll('#f input[type=text],#f textarea')].map(e=>e.value).join('')+'경력잘하는일AI가추천한새로운활동희망하는업무사진을올려주세요()0123456789';
+  const txt=[...document.querySelectorAll('#f input[type=text],#f textarea')].map(e=>e.value).join('')+'경력강점AI가추천한새로운활동희망하는업무사진을올려주세요()0123456789';
   try{await Promise.all([
     document.fonts.load(`400 40px "Nanum Brush Script"`,txt),
     document.fonts.load(`500 20px "Noto Sans KR"`,txt),
@@ -451,13 +442,25 @@ defaultImg.src = 'sample.png';
 
 /* ---------- save ---------- */
 let downloads=null;
-const fileName=()=>`명함_${(val('name')||'나의명함').replace(/[\\/:*?"<>|○]/g,'')||'나의명함'}.jpg`;
+const fileName=()=>`${(val('name')||'나의명함').replace(/[\\/:*?"<>|○]/g,'')||'나의명함'}-명함.jpg`;
 async function cardBlob(){await render();return await new Promise(r=>cv.toBlob(r,'image/jpeg',0.95));}
 
 async function saveFile(st){
   st.className='status';
   const blob=await cardBlob();
-  if(!downloads){st.classList.add('warn');st.textContent='여기서는 파일 저장이 안 돼요. 명함 그림을 길게 누르거나 마우스 오른쪽 버튼으로 눌러 "이미지 저장"을 선택하세요.';return;}
+  if(!downloads){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName();
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    st.classList.add('ok');
+    st.textContent = '저장했어요: ' + fileName();
+    return;
+  }
   try{
     await downloads.save({filename:fileName(),data:blob});
     st.classList.add('ok');
@@ -491,6 +494,83 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sheet').hidden)
 $('sheetFile').onclick=()=>saveFile($('sheetStatus'));
 
 $('save').onclick=()=>{ if(IS_MOBILE) openSheet(); else saveFile($('saveStatus')); };
+
+async function saveA4File(st){
+  st.className='status';
+  st.textContent='A4 용지를 만들고 있어요...';
+  await render();
+  const a4W = 2480, a4H = 3508;
+  const ac = document.createElement('canvas');
+  ac.width = a4W; ac.height = a4H;
+  const ax = ac.getContext('2d');
+  ax.fillStyle = '#ffffff';
+  ax.fillRect(0, 0, a4W, a4H);
+  
+  // 300dpi 기준으로 9.1cm = 1075px, 5cm = 591px
+  const cardW = 1075, cardH = 591;
+  const cols = 2, rows = 5;
+  const startX = Math.round((a4W - cardW * cols) / 2);
+  const startY = Math.round((a4H - cardH * rows) / 2);
+  
+  // 1. 이미지 먼저 배치
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      const dx = startX + c * cardW;
+      const dy = startY + r * cardH;
+      ax.drawImage(cv, dx, dy, cardW, cardH);
+    }
+  }
+  
+  // 2. 가위선(절취선) 명확하게 그리기
+  ax.strokeStyle = '#999999';
+  ax.lineWidth = 1;
+  ax.setLineDash([]);
+  ax.beginPath();
+  // 가로선
+  for(let r=0; r<=rows; r++){
+    ax.moveTo(startX - 30, startY + r * cardH);
+    ax.lineTo(startX + cols * cardW + 30, startY + r * cardH);
+  }
+  // 세로선
+  for(let c=0; c<=cols; c++){
+    ax.moveTo(startX + c * cardW, startY - 30);
+    ax.lineTo(startX + c * cardW, startY + rows * cardH + 30);
+  }
+  ax.stroke();
+  
+  // 가위 아이콘 안내
+  ax.font = '50px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  ax.textAlign = 'center';
+  ax.textBaseline = 'middle';
+  ax.fillText('✂️', startX + cardW, startY - 60);
+  ax.fillText('✂️', startX - 60, startY + cardH);
+  
+  const blob = await new Promise(r => ac.toBlob(r, 'image/jpeg', 0.95));
+  const fn = fileName().replace('.jpg', '-A4프린트.jpg');
+  
+  if(!downloads){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fn;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    st.classList.add('ok');
+    st.textContent = 'A4 프린트용 이미지를 저장했어요.';
+    return;
+  }
+  try{
+    await downloads.save({filename:fn, data:blob});
+    st.classList.add('ok');
+    st.textContent = 'A4 프린트용 이미지를 저장했어요.';
+  }catch(e){
+    st.classList.add('warn');
+    st.textContent = 'A4 이미지 저장에 실패했어요.';
+  }
+}
+$('saveA4').onclick = () => saveA4File($('saveStatus'));
 if(IS_MOBILE) {
   $('save').textContent='⬇ 갤러리에 저장하기';
   $('saveText').innerHTML='다 되면 <b>갤러리에 저장하기</b>를 눌러 주세요.';
@@ -501,15 +581,15 @@ let sample=null;
 async function aiRecommend(){
   const btn=$('aiBtn'),st=$('aiStatus');
   const career=lines('career').join(', '),skills=lines('skills').join(', ');
-  if(!career&&!skills){st.className='status warn';st.textContent='경력이나 잘하는 일을 먼저 적어 주세요.';return;}
+  if(!career&&!skills){st.className='status warn';st.textContent='경력이나 강점을 먼저 적어 주세요.';return;}
   btn.disabled=true;st.className='status';st.textContent='AI가 생각하고 있어요… (10~30초)';
   try{
     const r=await sample.json(
-`당신은 시니어 일자리 상담사입니다. 아래 어르신의 경력과 잘하는 일을 보고, 새로 도전해 볼 만한 일자리·활동 3가지를 추천하세요.
+`당신은 시니어 일자리 상담사입니다. 아래 어르신의 경력과 강점을 보고, 새로 도전해 볼 만한 일자리·활동 3가지를 추천하세요.
 - 각 항목은 14자 이내의 짧은 한국어 명사구, 맨 앞에 내용에 어울리는 그림문자 1개 + 공백 (예: "💼 금융·행정 업무 지원")
 - 실제 시니어 일자리로 이어질 수 있는 현실적인 활동
 경력: ${career||'(없음)'}
-잘하는 일: ${skills||'(없음)'}
+강점: ${skills||'(없음)'}
 JSON으로만 답하세요: {"items":["...","...","..."]}`,{modelTier:'quick',cache:false});
     const items=(r&&Array.isArray(r.items)?r.items:[]).map(s=>String(s).trim()).filter(Boolean).slice(0,4);
     if(!items.length)throw {code:'empty'};
