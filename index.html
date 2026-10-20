@@ -160,11 +160,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <button type="button" class="btn" id="sheetClose">닫기</button>
   </div>
 </div>
-<canvas id="cv" width="2380" height="1376" hidden></canvas>
+<canvas id="cv" width="2476" height="1376" hidden></canvas>
 
 <script>
 const $=id=>document.getElementById(id);
-const W=1190,H=688,S=2;
+const W=1238,H=688,S=2;
 const cv=$('cv'),ctx=cv.getContext('2d');
 const SANS='"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
 const BRUSH='"Nanum Brush Script","Noto Sans KR",cursive';
@@ -545,8 +545,71 @@ schedule();
 
 /* ---------- save ---------- */
 let downloads=null;
-const fileName=()=>`${(val('name')||'나의명함').replace(/[\\/:*?"<>|○]/g,'')||'나의명함'}-명함.jpg`;
-async function cardBlob(){await render();return await new Promise(r=>cv.toBlob(r,'image/jpeg',0.95));}
+const fileName=()=>{
+  const n = (val('name')||'홍길동').replace(/[\\/:*?"<>|○]/g,'').trim();
+  return `${n||'홍길동'}-명함.jpg`;
+};
+
+function insertJfifDpi(blob, dpi = 300) {
+  return blob.arrayBuffer().then(buffer => {
+    const bytes = new Uint8Array(buffer);
+    if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) return blob;
+    
+    // Check for existing APP0 at offset 2
+    if (bytes[2] === 0xFF && bytes[3] === 0xE0) {
+      const isJfif = bytes[6] === 0x4A && bytes[7] === 0x46 && bytes[8] === 0x49 && bytes[9] === 0x46 && bytes[10] === 0x00;
+      if (isJfif) {
+        // units: 1 = dots per inch (DPI)
+        bytes[13] = 1;
+        bytes[14] = (dpi >> 8) & 0xFF;
+        bytes[15] = dpi & 0xFF;
+        bytes[16] = (dpi >> 8) & 0xFF;
+        bytes[17] = dpi & 0xFF;
+        return new Blob([bytes], { type: 'image/jpeg' });
+      }
+    }
+    
+    // Standard 18-byte JFIF APP0 segment
+    const app0 = new Uint8Array([
+      0xFF, 0xE0,
+      0x00, 0x10,
+      0x4A, 0x46, 0x49, 0x46, 0x00,
+      0x01, 0x02,
+      0x01, // units = 1 (DPI)
+      (dpi >> 8) & 0xFF, dpi & 0xFF, // Xdensity
+      (dpi >> 8) & 0xFF, dpi & 0xFF, // Ydensity
+      0x00, 0x00
+    ]);
+    const newBytes = new Uint8Array(bytes.length + app0.length);
+    newBytes.set(bytes.subarray(0, 2), 0);
+    newBytes.set(app0, 2);
+    newBytes.set(bytes.subarray(2), 2 + app0.length);
+    return new Blob([newBytes], { type: 'image/jpeg' });
+  });
+}
+
+function getCardCanvas(){
+  // 가로 9cm, 세로 5cm (인쇄 표준 300 DPI 기준: 1063 x 591 px)
+  const targetW = 1063, targetH = 591;
+  const tc = document.createElement('canvas');
+  tc.width = targetW;
+  tc.height = targetH;
+  const tx = tc.getContext('2d');
+  tx.imageSmoothingEnabled = true;
+  tx.imageSmoothingQuality = 'high';
+  tx.drawImage(cv, 0, 0, targetW, targetH);
+  return tc;
+}
+
+window.getCardCanvas = getCardCanvas;
+window.insertJfifDpi = insertJfifDpi;
+
+async function cardBlob(){
+  await render();
+  const tc = getCardCanvas();
+  const rawBlob = await new Promise(r => tc.toBlob(r, 'image/jpeg', 0.96));
+  return await insertJfifDpi(rawBlob, 300);
+}
 
 async function saveFile(st){
   st.className='status';
@@ -559,15 +622,15 @@ async function saveFile(st){
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
     st.classList.add('ok');
-    st.textContent = '저장했어요: ' + fileName();
+    st.textContent = '가로 9cm, 세로 5cm로 저장했어요: ' + fileName();
     return;
   }
   try{
     await downloads.save({filename:fileName(),data:blob});
     st.classList.add('ok');
-    st.textContent=IS_ANDROID?'저장했어요. 갤러리 앱의 "다운로드" 앨범에서 볼 수 있어요.':IS_IOS?'저장했어요. 공유 창에서 "이미지 저장"을 골랐다면 사진 앱에 들어 있어요.':'저장했어요: '+fileName();
+    st.textContent=IS_ANDROID?'가로 9cm, 세로 5cm로 저장했어요. 갤러리 앱의 "다운로드" 앨범에서 볼 수 있어요.':IS_IOS?'가로 9cm, 세로 5cm로 저장했어요. 공유 창에서 "이미지 저장"을 골랐다면 사진 앱에 들어 있어요.':'가로 9cm, 세로 5cm로 저장했어요: '+fileName();
   }catch(e){
     if(e&&e.code==='declined'){st.textContent='저장을 취소했어요.';}
     else if(e&&e.code==='rate_limited'){st.classList.add('warn');st.textContent='저장 창이 이미 열려 있어요. 잠시 후 다시 눌러 주세요.';}
@@ -579,10 +642,13 @@ let lastFocus=null;
 async function openSheet(){
   lastFocus=document.activeElement;
   await render();
-  $('sheetImg').src=cv.toDataURL('image/jpeg',0.95);
+  const tc = getCardCanvas();
+  const blob = await new Promise(r => tc.toBlob(r, 'image/jpeg', 0.96));
+  const finalBlob = await insertJfifDpi(blob, 300);
+  $('sheetImg').src = URL.createObjectURL(finalBlob);
   const steps=IS_IOS
-    ?['위 명함 그림을 <b>손가락으로 길게</b> 누르세요.','메뉴가 나오면 <b>"사진 앱에 저장"</b>(또는 "이미지 저장")을 누르세요.','<b>사진</b> 앱을 열면 명함이 들어 있어요.']
-    :['위 명함 그림을 <b>손가락으로 길게</b> 누르세요.','메뉴가 나오면 <b>"이미지 다운로드"</b>(또는 "이미지 저장")를 누르세요.','<b>갤러리</b> 앱의 다운로드 앨범에서 명함을 볼 수 있어요.'];
+    ?['위 명함 그림(가로 9cm, 세로 5cm)을 <b>손가락으로 길게</b> 누르세요.','메뉴가 나오면 <b>"사진 앱에 저장"</b>(또는 "이미지 저장")을 누르세요.','<b>사진</b> 앱을 열면 명함이 들어 있어요.']
+    :['위 명함 그림(가로 9cm, 세로 5cm)을 <b>손가락으로 길게</b> 누르세요.','메뉴가 나오면 <b>"이미지 다운로드"</b>(또는 "이미지 저장")를 누르세요.','<b>갤러리</b> 앱의 다운로드 앨범에서 명함을 볼 수 있어요.'];
   $('sheetSteps').innerHTML=steps.map(t=>`<li>${t}</li>`).join('');
   $('sheetFile').hidden=!downloads;
   $('sheetFile').textContent=IS_IOS?'길게 눌러도 안 되면: 공유 창으로 저장하기':'길게 눌러도 안 되면: 파일로 저장하기';
@@ -609,8 +675,8 @@ async function saveA4File(st){
   ax.fillStyle = '#ffffff';
   ax.fillRect(0, 0, a4W, a4H);
   
-  // 300dpi 기준으로 9.1cm = 1075px, 5cm = 591px
-  const cardW = 1075, cardH = 591;
+  // 300dpi 기준으로 가로 9cm = 1063px, 세로 5cm = 591px
+  const cardW = 1063, cardH = 591;
   const cols = 2, rows = 5;
   const startX = Math.round((a4W - cardW * cols) / 2);
   const startY = Math.round((a4H - cardH * rows) / 2);
@@ -659,9 +725,9 @@ async function saveA4File(st){
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
     st.classList.add('ok');
-    st.textContent = 'A4 프린트용 이미지를 저장했어요.';
+    st.textContent = 'A4 프린트용 이미지를 저장했어요: ' + fn;
     return;
   }
   try{
